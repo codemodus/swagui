@@ -11,10 +11,15 @@ import (
 	"time"
 )
 
+var (
+	urlKey = "url"
+)
+
 // Options holds optional Swagui data.
 type Options struct {
 	Version         int
 	PathPrefix      string
+	DefaultURLParam string
 	NotFoundHandler http.Handler
 }
 
@@ -22,6 +27,7 @@ type Options struct {
 type Swagui struct {
 	version         int
 	prefix          string
+	defaultURLParam string
 	notFoundHandler http.Handler
 	finder          assetFinder
 	modtime         time.Time
@@ -37,6 +43,7 @@ func New(opts *Options) (*Swagui, error) {
 	s := &Swagui{
 		version:         opts.Version,
 		prefix:          filterPrefix(opts.PathPrefix),
+		defaultURLParam: opts.DefaultURLParam,
 		notFoundHandler: opts.NotFoundHandler,
 		modtime:         time.Now(),
 	}
@@ -61,31 +68,57 @@ func (s *Swagui) PathPrefix() string {
 	return s.prefix
 }
 
+func (s *Swagui) urlParam(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if s.defaultURLParam == "" || r.URL.Path != s.prefix {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		p := r.URL.Query().Get(urlKey)
+		if p != "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		rq := r.URL.RawQuery
+		if rq != "" {
+			rq = "&" + rq
+		}
+
+		u := "./?" + urlKey + "=" + s.defaultURLParam + rq
+
+		http.Redirect(w, r, u, 301)
+	})
+}
+
+func (s *Swagui) handler(w http.ResponseWriter, r *http.Request) {
+	// redirect "root" requests missing trailing slash
+	if len(r.URL.Path) > 1 && r.URL.Path == s.prefix[:len(s.prefix)-1] {
+		http.Redirect(w, r, r.URL.Path+"/", http.StatusMovedPermanently)
+		return
+	}
+
+	name := strings.TrimPrefix(r.URL.Path, s.prefix)
+
+	// rename index requests
+	if name == "" {
+		name = "index.html"
+	}
+
+	b, err := filteredAsset(s.finder, name)
+	if err != nil {
+		s.notFoundHandler.ServeHTTP(w, r)
+		return
+	}
+
+	c := bytes.NewReader(b)
+	http.ServeContent(w, r, path.Base(name), s.modtime, c)
+}
+
 // Handler returns an http.Handler which serves Swagger-UI.
 func (s *Swagui) Handler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// redirect "root" requests missing trailing slash
-		if len(r.URL.Path) > 1 && r.URL.Path == s.prefix[:len(s.prefix)-1] {
-			http.Redirect(w, r, r.URL.Path+"/", http.StatusMovedPermanently)
-			return
-		}
-
-		name := strings.TrimPrefix(r.URL.Path, s.prefix)
-
-		// rename index requests
-		if name == "" {
-			name = "index.html"
-		}
-
-		b, err := filteredAsset(s.finder, name)
-		if err != nil {
-			s.notFoundHandler.ServeHTTP(w, r)
-			return
-		}
-
-		c := bytes.NewReader(b)
-		http.ServeContent(w, r, path.Base(name), s.modtime, c)
-	})
+	return s.urlParam(http.HandlerFunc(s.handler))
 }
 
 func filterPrefix(p string) string {
