@@ -6,30 +6,34 @@ package swagui
 import (
 	"bytes"
 	"net/http"
-	"path"
-	"strings"
 	"time"
 )
 
 var (
 	urlKey = "url"
+	index  = []byte("index.html")
+)
+
+// Version wraps integer to ease the defining of the swagger ui version.
+type Version int
+
+// V{N} constants list the available swagger ui versions.
+const (
+	V1 Version = iota
+	V2
+	V3
 )
 
 // Options holds optional Swagui data.
 type Options struct {
-	Version         int
-	PathPrefix      string
-	DefaultURLParam string
+	Version         Version
 	NotFoundHandler http.Handler
 }
 
 // Swagui provides a Swagger-UI http.Handler and related data.
 type Swagui struct {
-	version         int
-	prefix          string
-	defaultURLParam string
 	notFoundHandler http.Handler
-	finder          assetFinder
+	accessor        accessor
 	modtime         time.Time
 }
 
@@ -41,10 +45,8 @@ func New(opts *Options) (*Swagui, error) {
 	}
 
 	s := &Swagui{
-		version:         opts.Version,
-		prefix:          filterPrefix(opts.PathPrefix),
-		defaultURLParam: opts.DefaultURLParam,
 		notFoundHandler: opts.NotFoundHandler,
+		accessor:        accessorByVersion(opts.Version),
 		modtime:         time.Now(),
 	}
 
@@ -52,94 +54,58 @@ func New(opts *Options) (*Swagui, error) {
 		s.notFoundHandler = http.NotFoundHandler()
 	}
 
-	switch s.version {
-	case 1:
-		s.finder = &data1{}
-	case 2:
-		s.finder = &data2{}
-	default:
-		s.finder = &data3{}
-	}
-
 	return s, nil
 }
 
-// PathPrefix returns the current path prefix which has been filtered for
-// appropriate usage.
-func (s *Swagui) PathPrefix() string {
-	return s.prefix
-}
+func setDefaultDefinition(def string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if def == "" || r.URL.Path != "" && r.URL.Path != "/" {
+				next.ServeHTTP(w, r)
+				return
+			}
 
-func (s *Swagui) urlParam(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if s.defaultURLParam == "" || r.URL.Path != s.prefix {
-			next.ServeHTTP(w, r)
-			return
-		}
+			p := r.URL.Query().Get(urlKey)
+			if p != "" {
+				next.ServeHTTP(w, r)
+				return
+			}
 
-		p := r.URL.Query().Get(urlKey)
-		if p != "" {
-			next.ServeHTTP(w, r)
-			return
-		}
+			rq := r.URL.RawQuery
+			if rq != "" {
+				rq = "&" + rq
+			}
 
-		rq := r.URL.RawQuery
-		if rq != "" {
-			rq = "&" + rq
-		}
+			u := "./?" + urlKey + "=" + def + rq
 
-		u := "./?" + urlKey + "=" + s.defaultURLParam + rq
-
-		http.Redirect(w, r, u, 301)
-	})
+			http.Redirect(w, r, u, 301)
+		})
+	}
 }
 
 func (s *Swagui) handler(w http.ResponseWriter, r *http.Request) {
-	// redirect "root" requests missing trailing slash
-	if len(r.URL.Path) > 1 && r.URL.Path == s.prefix[:len(s.prefix)-1] {
-		http.Redirect(w, r, r.URL.Path+"/", http.StatusMovedPermanently)
-		return
+	p := []byte(r.URL.Path)
+	if len(p) > 0 && p[0] == '/' {
+		p = p[1:]
 	}
 
-	name := strings.TrimPrefix(r.URL.Path, s.prefix)
-
-	// rename index requests
-	if name == "" {
-		name = "index.html"
+	if len(p) == 0 {
+		p = index
 	}
 
-	b, err := s.finder.Asset(name)
+	path := string(p)
+
+	b, err := s.accessor.Access(path)
 	if err != nil {
 		s.notFoundHandler.ServeHTTP(w, r)
 		return
 	}
 
 	c := bytes.NewReader(b)
-	http.ServeContent(w, r, path.Base(name), s.modtime, c)
+	http.ServeContent(w, r, path, s.modtime, c)
 }
 
 // Handler returns an http.Handler which serves Swagger-UI.
-func (s *Swagui) Handler() http.Handler {
-	return s.urlParam(http.HandlerFunc(s.handler))
-}
-
-func filterPrefix(p string) string {
-	p = path.Clean(p)
-
-	// ensure path.Clean dot return is avoided
-	if p == "." {
-		p = ""
-	}
-
-	// ensure prefix begins with slash
-	if p == "" || p[0] != '/' {
-		p = "/" + p
-	}
-
-	// ensure prefix ends with slash
-	if len(p) > 1 && p[len(p)-1] != '/' {
-		p += "/"
-	}
-
-	return p
+func (s *Swagui) Handler(defaultDefinition string) http.Handler {
+	return setDefaultDefinition(defaultDefinition)(http.HandlerFunc(s.handler))
 }
