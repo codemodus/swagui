@@ -76,7 +76,7 @@ func css_hightlight_default_css() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "css/hightlight.default.css", size: 2141, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "css/hightlight.default.css", size: 2141, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -96,7 +96,7 @@ func css_screen_css() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "css/screen.css", size: 48741, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "css/screen.css", size: 48741, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -116,7 +116,7 @@ func images_logo_small_png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "images/logo_small.png", size: 770, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "images/logo_small.png", size: 770, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -136,7 +136,7 @@ func images_pet_store_api_png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "images/pet_store_api.png", size: 824, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "images/pet_store_api.png", size: 824, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -156,7 +156,7 @@ func images_throbber_gif() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "images/throbber.gif", size: 9257, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "images/throbber.gif", size: 9257, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -176,7 +176,7 @@ func images_wordnik_api_png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "images/wordnik_api.png", size: 980, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "images/wordnik_api.png", size: 980, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -196,7 +196,7 @@ func index_html() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "index.html", size: 3295, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "index.html", size: 3295, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -216,7 +216,7 @@ func lib_backbone_min_js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "lib/backbone-min.js", size: 16464, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "lib/backbone-min.js", size: 16464, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -236,7 +236,7 @@ func lib_handlebars_1_0_rc_1_js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "lib/handlebars-1.0.rc.1.js", size: 61991, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "lib/handlebars-1.0.rc.1.js", size: 61991, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -256,7 +256,7 @@ func lib_highlight_7_3_pack_js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "lib/highlight.7.3.pack.js", size: 7499, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "lib/highlight.7.3.pack.js", size: 7499, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -276,7 +276,7 @@ func lib_jquery_1_8_0_min_js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "lib/jquery-1.8.0.min.js", size: 92556, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "lib/jquery-1.8.0.min.js", size: 92556, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -296,7 +296,7 @@ func lib_jquery_ba_bbq_min_js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "lib/jquery.ba-bbq.min.js", size: 4119, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "lib/jquery.ba-bbq.min.js", size: 4119, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -316,7 +316,7 @@ func lib_jquery_slideto_min_js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "lib/jquery.slideto.min.js", size: 369, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "lib/jquery.slideto.min.js", size: 369, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -336,7 +336,7 @@ func lib_jquery_wiggle_min_js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "lib/jquery.wiggle.min.js", size: 762, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "lib/jquery.wiggle.min.js", size: 762, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -356,7 +356,7 @@ func lib_swagger_js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "lib/swagger.js", size: 28038, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "lib/swagger.js", size: 28038, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -376,7 +376,7 @@ func lib_underscore_min_js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "lib/underscore-min.js", size: 12821, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "lib/underscore-min.js", size: 12821, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }
@@ -396,7 +396,7 @@ func swagger_ui_min_js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindata_file_info{name: "swagger-ui.min.js", size: 43720, mode: os.FileMode(436), modTime: time.Unix(1475740272, 0)}
+	info := bindata_file_info{name: "swagger-ui.min.js", size: 43720, mode: os.FileMode(436), modTime: time.Unix(1530649759, 0)}
 	a := &asset{bytes: bytes, info:  info}
 	return a, nil
 }

@@ -55,8 +55,10 @@ func New(opts *Options) (*Swagui, error) {
 	switch s.version {
 	case 1:
 		s.finder = &data1{}
-	default:
+	case 2:
 		s.finder = &data2{}
+	default:
+		s.finder = &data3{}
 	}
 
 	return s, nil
@@ -106,7 +108,7 @@ func (s *Swagui) handler(w http.ResponseWriter, r *http.Request) {
 		name = "index.html"
 	}
 
-	b, err := filteredAsset(s.finder, name)
+	b, err := s.finder.Asset(name)
 	if err != nil {
 		s.notFoundHandler.ServeHTTP(w, r)
 		return
@@ -140,12 +142,4 @@ func filterPrefix(p string) string {
 	}
 
 	return p
-}
-
-func filteredAsset(finder assetFinder, name string) ([]byte, error) {
-	if name == "swagger-ui.js" {
-		name = "swagger-ui.min.js"
-	}
-
-	return finder.Asset(name)
 }
