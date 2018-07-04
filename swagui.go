@@ -9,21 +9,6 @@ import (
 	"time"
 )
 
-var (
-	urlKey = "url"
-	index  = []byte("index.html")
-)
-
-// Version wraps integer to ease the defining of the swagger ui version.
-type Version int
-
-// V{N} constants list the available swagger ui versions.
-const (
-	V1 Version = iota
-	V2
-	V3
-)
-
 // Options holds optional Swagui data.
 type Options struct {
 	Version         Version
@@ -32,8 +17,8 @@ type Options struct {
 
 // Swagui provides a Swagger-UI http.Handler and related data.
 type Swagui struct {
+	files           *uiFiles
 	notFoundHandler http.Handler
-	accessor        accessor
 	modtime         time.Time
 }
 
@@ -45,8 +30,8 @@ func New(opts *Options) (*Swagui, error) {
 	}
 
 	s := &Swagui{
+		files:           newUIFiles(opts.Version),
 		notFoundHandler: opts.NotFoundHandler,
-		accessor:        accessorByVersion(opts.Version),
 		modtime:         time.Now(),
 	}
 
@@ -57,55 +42,29 @@ func New(opts *Options) (*Swagui, error) {
 	return s, nil
 }
 
-func setDefaultDefinition(def string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if def == "" || r.URL.Path != "" && r.URL.Path != "/" {
-				next.ServeHTTP(w, r)
-				return
-			}
-
-			p := r.URL.Query().Get(urlKey)
-			if p != "" {
-				next.ServeHTTP(w, r)
-				return
-			}
-
-			rq := r.URL.RawQuery
-			if rq != "" {
-				rq = "&" + rq
-			}
-
-			u := "./?" + urlKey + "=" + def + rq
-
-			http.Redirect(w, r, u, 301)
-		})
-	}
-}
-
-func (s *Swagui) handler(w http.ResponseWriter, r *http.Request) {
-	p := []byte(r.URL.Path)
-	if len(p) > 0 && p[0] == '/' {
-		p = p[1:]
-	}
-
-	if len(p) == 0 {
-		p = index
-	}
-
-	path := string(p)
-
-	b, err := s.accessor.Access(path)
-	if err != nil {
-		s.notFoundHandler.ServeHTTP(w, r)
-		return
-	}
-
-	c := bytes.NewReader(b)
-	http.ServeContent(w, r, path, s.modtime, c)
-}
-
 // Handler returns an http.Handler which serves Swagger-UI.
 func (s *Swagui) Handler(defaultDefinition string) http.Handler {
-	return setDefaultDefinition(defaultDefinition)(http.HandlerFunc(s.handler))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := r.URL.Path
+		if p != "" && p[0] == '/' {
+			p = p[1:]
+		}
+
+		var b []byte
+		var err error
+
+		switch p {
+		case "", indexFile:
+			b, err = s.files.accessIndex(defaultDefinition)
+		default:
+			b, err = s.files.access(p)
+		}
+		if err != nil {
+			s.notFoundHandler.ServeHTTP(w, r)
+			return
+		}
+
+		c := bytes.NewReader(b)
+		http.ServeContent(w, r, p, s.modtime, c)
+	})
 }
