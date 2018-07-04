@@ -1,6 +1,9 @@
 package swagui
 
 import (
+	"bufio"
+	"bytes"
+
 	"github.com/codemodus/swagui/bindata1"
 	"github.com/codemodus/swagui/bindata2"
 	"github.com/codemodus/swagui/bindata3"
@@ -99,5 +102,17 @@ func accessIndex(store map[string][]byte, assetFn assetFunc, orig, def string) (
 }
 
 func replaceDefinition(orig, def string, bs []byte) ([]byte, error) {
-	return bs, nil
+	origbs, defbs := []byte(orig), []byte(def)
+	dif := len(defbs) - len(origbs)
+	ret := make([]byte, 0, len(bs)+dif)
+
+	sc := bufio.NewScanner(bytes.NewReader(bs))
+	for sc.Scan() {
+		c := sc.Bytes()
+		repbs := bytes.Replace(c, origbs, defbs, 1)
+		ret = append(ret, repbs...)
+		ret = append(ret, '\n')
+	}
+
+	return ret, sc.Err()
 }
