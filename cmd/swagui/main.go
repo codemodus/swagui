@@ -17,7 +17,7 @@ func main() {
 	)
 
 	flag.StringVar(&port, "port", port, "http port")
-	flag.StringVar(&defdef, "defdef", defdef, "default definition")
+	flag.StringVar(&defdef, "def", defdef, "default definition")
 	flag.IntVar(&version, "v", version, "swagger version")
 	flag.Parse()
 
