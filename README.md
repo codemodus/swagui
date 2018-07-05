@@ -2,9 +2,7 @@
 
     go get -u github.com/codemodus/swagui
 
-Package swagui simplifies serving an instance of Swagger-UI. It can be added to 
-a multiplexer, or served directly. If using a multiplexer, the path prefix 
-option must match the relevant route.
+Package swagui simplifies serving an instance of Swagger-UI.
 
 ## Usage
 
@@ -13,7 +11,7 @@ type Options
 type Swagui
     func New(opts *Options) (*Swagui, error)
     func (s *Swagui) Handler() http.Handler
-    func (s *Swagui) PathPrefix() string
+type Version
 ```
 
 ### Setup
@@ -34,9 +32,8 @@ func main() {
         os.Exit(1)
     }
 
-    if err = http.ListenAndServe(":21234", ui.Handler()); err != nil {
+    if err = http.ListenAndServe(":21234", ui.Handler("")); err != nil {
         fmt.Fprintln(os.Stderr, err)
-        os.Exit(1)
     }
 
     // ...
@@ -50,12 +47,16 @@ func main() {
     // ...
 
     m := http.NewServeMux()
+    // ...
+
     m.Handle("/some_path", someHandler)
-    m.Handle(ui.PathPrefix(), ui.Handler())
+    m.Handle(
+        "/docs/", 
+        http.StripPrefix("/docs/", ui.Handler("/defs/swagger.json")),
+    )
     
     if err = http.ListenAndServe(":21234", m); err != nil {
         fmt.Fprintln(os.Stderr, err)
-        os.Exit(1)
     }
     	
     // ...
@@ -64,10 +65,7 @@ func main() {
 
 ## More Info
 
-### Swagger Version
-
-If an invalid version is configured (0, or > current release), the current
-release will be used.
+N/A
 
 ## Documentation
 

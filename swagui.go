@@ -1,6 +1,4 @@
-// Package swagui simplifies serving an instance of Swagger-UI. It can be added
-// to a multiplexer, or served directly. If using a multiplexer, the path
-// prefix option must match the relevant route.
+// Package swagui simplifies serving an instance of Swagger-UI.
 package swagui
 
 import (
@@ -15,15 +13,14 @@ type Options struct {
 	NotFoundHandler http.Handler
 }
 
-// Swagui provides a Swagger-UI http.Handler and related data.
+// Swagui provides a Swagger-UI http.Handler and manages related data.
 type Swagui struct {
 	files           *uiFiles
 	notFoundHandler http.Handler
 	modtime         time.Time
 }
 
-// New returns a Swagui and defaults to the latest version of Swagger. If a
-// path prefix is provided, it will be filtered for appropriate usage.
+// New returns a Swagui and defaults to the latest version of Swagger.
 func New(opts *Options) (*Swagui, error) {
 	if opts == nil {
 		opts = &Options{}
