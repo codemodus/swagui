@@ -14,105 +14,91 @@ type Version int
 
 // V{n} constants list the available swagger ui versions.
 const (
-	VNewest Version = iota
+	VLatest Version = iota
 	V1
 	V2
 	V3
 )
 
-var (
-	indexFile = "index.html"
-)
-
 type assetFunc func(string) ([]byte, error)
 
 type uiFiles struct {
-	aliases map[string]string
-	assetFn assetFunc
-	store   map[string][]byte
-	origDef string
+	aliases    map[string]string
+	assetFn    assetFunc
+	cache      map[string][]byte
+	defaultDef string
 }
 
 func newUIFiles(v Version) *uiFiles {
 	fs := &uiFiles{
 		aliases: make(map[string]string),
-		store:   make(map[string][]byte),
+		cache:   make(map[string][]byte),
 	}
 
 	switch v {
 	case V1:
 		fs.aliases["swagger-ui.js"] = "swagger-ui.min.js"
 		fs.assetFn = bindata1.Asset
-		fs.origDef = "http://petstore.swagger.wordnik.com/api/api-docs.json"
+		fs.defaultDef = "http://petstore.swagger.wordnik.com/api/api-docs.json"
 
 	case V2:
 		fs.aliases["swagger-ui.js"] = "swagger-ui.min.js"
 		fs.assetFn = bindata2.Asset
-		fs.origDef = "http://petstore.swagger.io/v2/swagger.json"
+		fs.defaultDef = "http://petstore.swagger.io/v2/swagger.json"
 
 	default:
 		fs.assetFn = bindata3.Asset
-		fs.origDef = "https://petstore.swagger.io/v2/swagger.json"
-
+		fs.defaultDef = "https://petstore.swagger.io/v2/swagger.json"
 	}
 
 	return fs
 }
 
-func (fs *uiFiles) access(name string) ([]byte, error) {
-	return fs.assetFn(resolveAlias(fs.aliases, name))
+func (fs *uiFiles) file(name string) ([]byte, error) {
+	return fs.assetFn(valueOrKey(fs.aliases, name))
 }
 
-func (fs *uiFiles) accessIndex(definition string) ([]byte, error) {
-	return accessIndex(fs.store, fs.assetFn, fs.origDef, definition)
-}
-
-func resolveAlias(aliases map[string]string, name string) string {
-	if len(aliases) == 0 {
-		return name
-	}
-
-	a, ok := aliases[name]
-	if !ok {
-		return name
-	}
-
-	return a
-}
-
-func accessIndex(store map[string][]byte, assetFn assetFunc, orig, def string) ([]byte, error) {
-	bs, ok := store[def]
+func (fs *uiFiles) defFilteredFile(name, definition string) ([]byte, error) {
+	bs, ok := fs.cache[definition]
 	if ok {
 		return bs, nil
 	}
 
-	bs, err := assetFn(indexFile)
+	bs, err := fs.file(name)
 	if err != nil {
 		return nil, err
 	}
 
-	bs, err = replaceDefinition(orig, def, bs)
+	bs, err = replace(bs, fs.defaultDef, definition)
 	if err != nil {
 		return nil, err
 	}
 
-	store[def] = bs
+	fs.cache[definition] = bs
 
 	return bs, nil
 }
 
-func replaceDefinition(orig, def string, bs []byte) ([]byte, error) {
-	origbs, defbs := []byte(orig), []byte(def)
-	dif := len(defbs) - len(origbs)
-	ret := make([]byte, 0, len(bs)+dif)
-
-	sc := bufio.NewScanner(bytes.NewReader(bs))
-	for sc.Scan() {
-		c := sc.Bytes()
-		repbs := bytes.Replace(c, origbs, defbs, 1)
-		ret = append(ret, repbs...)
-		ret = append(ret, '\n')
+func valueOrKey(m map[string]string, key string) string {
+	if val, ok := m[key]; ok {
+		return val
 	}
 
-	return ret, sc.Err()
+	return key
+}
+
+func replace(s []byte, a, b string) ([]byte, error) {
+	abs, bbs := []byte(a), []byte(b)
+	dif := len(bbs) - len(abs)
+	bs := make([]byte, 0, len(s)+dif)
+
+	sc := bufio.NewScanner(bytes.NewReader(s))
+	for sc.Scan() {
+		ss := sc.Bytes()
+		rbs := bytes.Replace(ss, abs, bbs, 1)
+		bs = append(bs, rbs...)
+		bs = append(bs, '\n')
+	}
+
+	return bs, sc.Err()
 }

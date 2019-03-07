@@ -15,9 +15,10 @@ type Options struct {
 
 // Swagui provides a Swagger-UI http.Handler and manages related data.
 type Swagui struct {
-	files           *uiFiles
-	notFoundHandler http.Handler
-	modtime         time.Time
+	fs        *uiFiles
+	nfHandler http.Handler
+	modtime   time.Time
+	indexFile string
 }
 
 // New returns a Swagui and defaults to the latest version of Swagger.
@@ -26,17 +27,18 @@ func New(opts *Options) (*Swagui, error) {
 		opts = &Options{}
 	}
 
-	s := &Swagui{
-		files:           newUIFiles(opts.Version),
-		notFoundHandler: opts.NotFoundHandler,
-		modtime:         time.Now(),
+	s := Swagui{
+		fs:        newUIFiles(opts.Version),
+		nfHandler: opts.NotFoundHandler,
+		modtime:   time.Now(),
+		indexFile: "index.html",
 	}
 
-	if s.notFoundHandler == nil {
-		s.notFoundHandler = http.NotFoundHandler()
+	if s.nfHandler == nil {
+		s.nfHandler = http.NotFoundHandler()
 	}
 
-	return s, nil
+	return &s, nil
 }
 
 // Handler returns an http.Handler which serves Swagger-UI.
@@ -47,21 +49,21 @@ func (s *Swagui) Handler(defaultDefinition string) http.Handler {
 			p = p[1:]
 		}
 
-		var b []byte
+		var bs []byte
 		var err error
 
 		switch p {
-		case "", indexFile:
-			b, err = s.files.accessIndex(defaultDefinition)
+		case "", s.indexFile:
+			bs, err = s.fs.defFilteredFile(s.indexFile, defaultDefinition)
 		default:
-			b, err = s.files.access(p)
+			bs, err = s.fs.file(p)
 		}
 		if err != nil {
-			s.notFoundHandler.ServeHTTP(w, r)
+			s.nfHandler.ServeHTTP(w, r)
 			return
 		}
 
-		c := bytes.NewReader(b)
-		http.ServeContent(w, r, p, s.modtime, c)
+		rdskr := bytes.NewReader(bs)
+		http.ServeContent(w, r, p, s.modtime, rdskr)
 	})
 }
