@@ -38,6 +38,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	// TODO: add http caching, etc.
+
 	if err = http.ListenAndServe(port, ui.Handler(defdef)); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

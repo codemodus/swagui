@@ -63,7 +63,6 @@ func (s *Swagui) Handler(defaultDefinition string) http.Handler {
 			return
 		}
 
-		rdskr := bytes.NewReader(bs)
-		http.ServeContent(w, r, p, s.modtime, rdskr)
+		http.ServeContent(w, r, p, s.modtime, bytes.NewReader(bs))
 	})
 }
