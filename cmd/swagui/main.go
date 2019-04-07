@@ -7,6 +7,9 @@ import (
 	"os"
 
 	"github.com/codemodus/swagui"
+	"github.com/codemodus/swagui/suidata1"
+	"github.com/codemodus/swagui/suidata2"
+	"github.com/codemodus/swagui/suidata3"
 )
 
 func main() {
@@ -21,24 +24,26 @@ func main() {
 	flag.IntVar(&version, "v", version, "swagger version")
 	flag.Parse()
 
-	var v swagui.Version
+	var p swagui.Provider
 	switch version {
 	case 1:
-		v = swagui.V1
+		p = suidata1.New()
 	case 2:
-		v = swagui.V2
+		p = suidata2.New()
 	default:
-		v = swagui.V3
+		version = 3
+		p = suidata3.New()
 	}
-
-	opts := &swagui.Options{Version: v}
-	ui, err := swagui.New(opts)
+	ui, err := swagui.New(http.NotFoundHandler(), p)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
 	// TODO: add http caching, etc.
+
+	msgfmt := "serving swaggerui v%d on %s, with default def %q"
+	fmt.Printf(msgfmt, version, port, defdef)
 
 	if err = http.ListenAndServe(port, ui.Handler(defdef)); err != nil {
 		fmt.Fprintln(os.Stderr, err)

@@ -2,67 +2,43 @@
 package swagui
 
 import (
-	"bytes"
+	"fmt"
 	"net/http"
-	"time"
 )
 
-// Options holds optional Swagui data.
-type Options struct {
-	Version         Version
-	NotFoundHandler http.Handler
+// Provider sets up an HTTP handler for Swagger-UI resources. The provided types
+// that implement this interface are located in separate packages based on their
+// Swagger version so that imported dependencies are controlled by the caller.
+type Provider interface {
+	Handler(notFound http.Handler, defaultDef string) http.Handler
 }
 
-// Swagui provides a Swagger-UI http.Handler and manages related data.
+// Swagui wraps a Provider to simplify usage.
 type Swagui struct {
-	fs        *uiFiles
-	nfHandler http.Handler
-	modtime   time.Time
-	indexFile string
+	nf http.Handler
+	p  Provider
 }
 
-// New returns a Swagui and defaults to the latest version of Swagger.
-func New(opts *Options) (*Swagui, error) {
-	if opts == nil {
-		opts = &Options{}
+// New returns a Swagui, or an error if no provider is set.
+func New(notFound http.Handler, p Provider) (*Swagui, error) {
+	efmt := "new swagui: %s"
+
+	if notFound == nil {
+		notFound = http.NotFoundHandler()
+	}
+	if p == nil {
+		return nil, fmt.Errorf(efmt, "provider must be set")
 	}
 
 	s := Swagui{
-		fs:        newUIFiles(opts.Version),
-		nfHandler: opts.NotFoundHandler,
-		modtime:   time.Now(),
-		indexFile: "index.html",
-	}
-
-	if s.nfHandler == nil {
-		s.nfHandler = http.NotFoundHandler()
+		nf: notFound,
+		p:  p,
 	}
 
 	return &s, nil
 }
 
-// Handler returns an http.Handler which serves Swagger-UI.
+// Handler returns an http.Handler for Swagger-UI resources.
 func (s *Swagui) Handler(defaultDefinition string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		p := r.URL.Path
-		if p != "" && p[0] == '/' {
-			p = p[1:]
-		}
-
-		var bs []byte
-		var err error
-
-		switch p {
-		case "", s.indexFile:
-			bs, err = s.fs.defFilteredFile(s.indexFile, defaultDefinition)
-		default:
-			bs, err = s.fs.file(p)
-		}
-		if err != nil {
-			s.nfHandler.ServeHTTP(w, r)
-			return
-		}
-
-		http.ServeContent(w, r, p, s.modtime, bytes.NewReader(bs))
-	})
+	return s.p.Handler(s.nf, defaultDefinition)
 }
