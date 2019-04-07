@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"bytes"
 
-	"github.com/codemodus/swagui/bindata1"
-	"github.com/codemodus/swagui/bindata2"
-	"github.com/codemodus/swagui/bindata3"
+	"github.com/codemodus/swagui/suidata1"
+	"github.com/codemodus/swagui/suidata2"
+	"github.com/codemodus/swagui/suidata3"
 )
 
 // Version wraps integer to ease the defining of the swagger ui version.
@@ -38,16 +38,16 @@ func newUIFiles(v Version) *uiFiles {
 	switch v {
 	case V1:
 		fs.aliases["swagger-ui.js"] = "swagger-ui.min.js"
-		fs.assetFn = bindata1.Asset
+		fs.assetFn = suidata1.Asset
 		fs.defaultDef = "http://petstore.swagger.wordnik.com/api/api-docs.json"
 
 	case V2:
 		fs.aliases["swagger-ui.js"] = "swagger-ui.min.js"
-		fs.assetFn = bindata2.Asset
+		fs.assetFn = suidata2.Asset
 		fs.defaultDef = "http://petstore.swagger.io/v2/swagger.json"
 
 	default:
-		fs.assetFn = bindata3.Asset
+		fs.assetFn = suidata3.Asset
 		fs.defaultDef = "https://petstore.swagger.io/v2/swagger.json"
 	}
 

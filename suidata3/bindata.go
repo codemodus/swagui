@@ -8,7 +8,7 @@
 // swagger-ui/dist/swagger-ui-standalone-preset.js
 // swagger-ui/dist/swagger-ui.css
 // swagger-ui/dist/swagger-ui.js
-package bindata3
+package suidata3
 
 import (
 	"bytes"

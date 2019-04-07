@@ -51,7 +51,7 @@
 // swagger-ui/dist/lib/swagger-oauth.js
 // swagger-ui/dist/o2c.html
 // swagger-ui/dist/swagger-ui.min.js
-package bindata2
+package suidata2
 
 import (
 	"bytes"

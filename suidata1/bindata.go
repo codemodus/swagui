@@ -17,7 +17,7 @@
 // swagger-ui/dist/lib/swagger.js
 // swagger-ui/dist/lib/underscore-min.js
 // swagger-ui/dist/swagger-ui.min.js
-package bindata1
+package suidata1
 
 import (
 	"bytes"
