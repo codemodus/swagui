@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
 	"github.com/codemodus/swagui"
@@ -14,7 +16,22 @@ import (
 	"github.com/codemodus/swagui/suidata3"
 )
 
+type logfFunc func(string, ...interface{})
+
+type elogFunc func(error)
+
 func main() {
+	cmd := path.Base(os.Args[0])
+	log := logInfofFunc(cmd, os.Stdout)
+	elog := logErrorFunc(cmd, os.Stderr)
+
+	if err := run(log); err != nil {
+		elog(err)
+		os.Exit(1)
+	}
+}
+
+func run(log logfFunc) error {
 	var (
 		port    = ":2288"
 		def     = ""
@@ -33,7 +50,7 @@ func main() {
 	defSrc := def
 	if scrape != "" {
 		if def != "" {
-			fmt.Printf("overriding def flag\n")
+			log("overriding def flag\n")
 		}
 		def = fmt.Sprintf("http://localhost%s%s", port, scrpath)
 		defType = "scraped"
@@ -52,25 +69,20 @@ func main() {
 	}
 	ui, err := swagui.New(http.NotFoundHandler(), p)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		return err
 	}
-
-	msgfmt := "serving swaggerui v%d on %s, with %s def %q"
-	fmt.Printf(msgfmt, version, port, defType, defSrc)
 
 	var h http.Handler = ui.Handler(def)
 	wrap, err := scrapeHandlerFunc(scrpath, scrape)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		return err
 	}
 	h = wrap(h)
 
-	if err = http.ListenAndServe(port, h); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	msgfmt := "serving swaggerui v%d on %s, with %s def %q\n"
+	log(msgfmt, version, port, defType, defSrc)
+
+	return http.ListenAndServe(port, h)
 }
 
 func scrapeHandlerFunc(path, resource string) (func(http.Handler) http.Handler, error) {
@@ -121,4 +133,18 @@ func getData(resource string) ([]byte, error) {
 	}
 
 	return bb.Bytes(), nil
+}
+
+func logInfofFunc(cmd string, w io.Writer) logfFunc {
+	return func(format string, a ...interface{}) {
+		fmt.Fprint(w, cmd, ": ")     //nolint
+		fmt.Fprintf(w, format, a...) //nolint
+	}
+}
+
+func logErrorFunc(cmd string, w io.Writer) elogFunc {
+	return func(err error) {
+		fmt.Fprint(w, cmd, ": ")    //nolint
+		fmt.Fprintf(w, "%v\n", err) //nolint
+	}
 }
